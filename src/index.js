@@ -1,9 +1,17 @@
-const app = require("./app");
+import dotenv from "dotenv";
 
-const startApp = () => {
-  app.listen(3000, () => {
-    console.log(`App running on port ${process.env.PORT}`);
+import connectToDB from "./db/db.js";
+
+import { app } from "./app.js";
+
+dotenv.config({ path: "./env" });
+
+connectToDB()
+  .then(() => {
+    app.listen(process.env.PORT, () => {
+      console.log(`Server is running on port ${process.env.PORT}`);
+    });
+  })
+  .catch(() => {
+    console.log("error connecting to mongodb");
   });
-};
-
-startApp();
