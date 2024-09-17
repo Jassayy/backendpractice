@@ -64,8 +64,12 @@ const register = async (req, res) => {
     .status(201)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json({ message: "User created successfully" })
-    .json(createdUser);
+    .json({
+      message: "User created successfully",
+      user: createdUser,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    });
 };
 
 export { register };
