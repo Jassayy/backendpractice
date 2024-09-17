@@ -64,7 +64,8 @@ const register = async (req, res) => {
     .status(201)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json({ message: "User created successfully" });
+    .json({ message: "User created successfully" })
+    .json(createdUser);
 };
 
 export { register };
