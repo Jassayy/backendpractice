@@ -1,4 +1,5 @@
 import { User } from "../models/user.model.js";
+import jwt from "jsonwebtoken";
 
 //method to generate access and refresh token for user once he signs up
 const generateAccessAndRefreshToken = async (userId) => {
@@ -163,4 +164,53 @@ const logout = async (req, res) => {
   //for logout route first we need to check if the user is logged in or no...so we use jwt as middleware
 };
 
-export { register, login, logout };
+const refreshAccessToken = async (req, res) => {
+  try {
+    const incomingRefreshToken =
+      req.cookies?.refreshToken || req.body?.refreshToken;
+
+    if (!incomingRefreshToken) {
+      return res.status(401).json({ message: "No valid refresh token found" });
+    }
+
+    const decodedRefreshToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const user = await User.findOne({ _id: decodedRefreshToken?._id });
+
+    if (!user) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    if (incomingRefreshToken !== user.refreshToken) {
+      return res.status(403).json({ message: "Refresh token has expired" });
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id
+    );
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json({
+        message: "Access token refreshed successfully",
+        user: user,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      });
+  } catch (error) {
+    throw error;
+  }
+};
+
+export { register, login, logout, refreshAccessToken };
