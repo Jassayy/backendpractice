@@ -213,4 +213,33 @@ const refreshAccessToken = async (req, res) => {
   }
 };
 
-export { register, login, logout, refreshAccessToken };
+const updateUserDetails = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    if (!(name && email)) {
+      return res.status(400).json({ message: "Name and Email are required!" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      { _id: req.user?._id },
+      {
+        $set: {
+          name: name,
+          email: email,
+        },
+      },
+      {
+        new: true,
+      }
+    ).select("-password -refreshToken");
+
+    return res
+      .status(200)
+      .json({ message: "Account details updated successfully", user: user });
+  } catch (error) {
+    throw error;
+  }
+};
+
+export { register, login, logout, refreshAccessToken, updateUserDetails };
