@@ -242,4 +242,51 @@ const updateUserDetails = async (req, res) => {
   }
 };
 
-export { register, login, logout, refreshAccessToken, updateUserDetails };
+const updatePassword = async (req, res) => {
+  try {
+    const { password, newPassword } = req.body;
+
+    if (!(password && newPassword)) {
+      return res
+        .status(400)
+        .json({ message: "Password and New Password are required!" });
+    }
+
+    if (password === newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Old and New Passwords must be different!" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      { _id: req.user?._id },
+      {
+        $set: {
+          password: newPassword,
+        },
+      },
+      {
+        new: true,
+      }
+    ).select("-password -refreshToken");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Password updated successfully!", user: user });
+  } catch (error) {
+    throw error;
+  }
+};
+
+export {
+  register,
+  login,
+  logout,
+  refreshAccessToken,
+  updateUserDetails,
+  updatePassword,
+};
